@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Generated output
+output/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
