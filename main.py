@@ -2,6 +2,7 @@ import sqlite3
 from pathlib import Path
 from quran_parser import parse_quran
 from divehi_parser import parse_divehi, LANGUAGE, TRANSLATOR
+from surahs_parser import parse_surahs
 
 OUTPUT_FILE = Path(__file__).parent / "output" / "quran.db"
 
@@ -40,6 +41,11 @@ def build_quran_db():
         CREATE INDEX IF NOT EXISTS idx_ayahs_surah ON ayahs(surah_id);
         CREATE INDEX IF NOT EXISTS idx_trans_ayah  ON translations(ayah_id);
     """)
+
+    cursor.executemany(
+        "INSERT INTO surahs (id, name_ar, name_en, ayas, type) VALUES (?, ?, ?, ?, ?)",
+        parse_surahs()
+    )
 
     for sura, aya, text in parse_quran():
         cursor.execute(
