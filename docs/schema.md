@@ -51,10 +51,28 @@ One row per ayah per translation. Currently contains Divehi only.
 
 ---
 
+### `chapters`
+
+One row per juz (30 total). Stores the surah and ayah where each juz begins and ends.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | INTEGER | PRIMARY KEY | Juz number (1–30) |
+| `chapter_no` | INTEGER | NOT NULL | Juz number (1–30) |
+| `start_surah_id` | INTEGER | NOT NULL, FK → `surahs.id` | Surah where the juz begins |
+| `start_ayah_no` | INTEGER | NOT NULL | Ayah number where the juz begins |
+| `end_surah_id` | INTEGER | NOT NULL, FK → `surahs.id` | Surah where the juz ends |
+| `end_ayah_no` | INTEGER | NOT NULL | Ayah number where the juz ends |
+
+**Index:** `idx_chapters_no` on `chapters(chapter_no)`
+
+---
+
 ## Relationships
 
 ```
 surahs (1) ──── (many) ayahs (1) ──── (many) translations
+surahs (1) ──── (many) chapters (via start_surah_id / end_surah_id)
 ```
 
 ---
@@ -66,6 +84,7 @@ surahs (1) ──── (many) ayahs (1) ──── (many) translations
 | `surahs` | 114 |
 | `ayahs` | 6,236 |
 | `translations` | 6,236 (Divehi) |
+| `chapters` | 30 |
 
 ---
 
@@ -93,4 +112,20 @@ FROM ayahs a
 LEFT JOIN translations t ON t.ayah_id = a.id AND t.language = 'dv'
 WHERE a.surah_id = 1
 ORDER BY a.ayah_number;
+
+-- Juz boundaries
+SELECT chapter_no, start_surah_id, start_ayah_no, end_surah_id, end_ayah_no
+FROM chapters
+ORDER BY chapter_no;
+
+-- All ayahs in juz 1
+SELECT a.surah_id, a.ayah_number, a.text_ar
+FROM chapters c
+JOIN ayahs a ON (
+    a.surah_id > c.start_surah_id OR (a.surah_id = c.start_surah_id AND a.ayah_number >= c.start_ayah_no)
+) AND (
+    a.surah_id < c.end_surah_id OR (a.surah_id = c.end_surah_id AND a.ayah_number <= c.end_ayah_no)
+)
+WHERE c.chapter_no = 1
+ORDER BY a.surah_id, a.ayah_number;
 ```
